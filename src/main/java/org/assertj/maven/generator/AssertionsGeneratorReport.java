@@ -14,7 +14,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.collections.MapUtils;
 import org.assertj.assertions.generator.AssertionsEntryPointType;
+import org.assertj.assertions.generator.Template;
 
 public class AssertionsGeneratorReport {
 
@@ -29,8 +31,9 @@ public class AssertionsGeneratorReport {
   private Exception exception;
   private Collection<Class<?>> excludedClassesFromAssertionGeneration;
   private Set<String> inputClassesNotFound;
+    private Map<String, String> templates;
 
-  public AssertionsGeneratorReport() {
+    public AssertionsGeneratorReport() {
 	assertionsEntryPointFilesByType = newTreeMap();
 	generatedCustomAssertionFileNames = newTreeSet();
 	inputClassesNotFound = newTreeSet();
@@ -151,6 +154,13 @@ public class AssertionsGeneratorReport {
 		reportBuilder.append(INDENT).append(excludedClass.getName()).append("\n");
 	  }
 	}
+      if (MapUtils.isNotEmpty(templates)) {
+          reportBuilder.append("\n");
+          reportBuilder.append("Overriding templates for assertions generation:\n");
+          for (Map.Entry<String, String> entry : templates.entrySet()) {
+             reportBuilder.append(INDENT).append(entry.getKey()).append(":").append(entry.getValue()).append("\n");
+          }
+      }
   }
 
   private boolean generationError() {
@@ -201,4 +211,8 @@ public class AssertionsGeneratorReport {
 	  }
 	}
   }
+
+    public void setTemplates(Map<String, String> templates) {
+        this.templates = templates;
+    }
 }

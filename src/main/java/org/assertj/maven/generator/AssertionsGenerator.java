@@ -12,12 +12,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.assertj.assertions.generator.AssertionsEntryPointType;
 import org.assertj.assertions.generator.BaseAssertionGenerator;
+import org.assertj.assertions.generator.Template;
 import org.assertj.assertions.generator.description.ClassDescription;
 import org.assertj.assertions.generator.description.converter.ClassToClassDescriptionConverter;
 import org.assertj.core.util.VisibleForTesting;
@@ -74,14 +78,37 @@ public class AssertionsGenerator {
    * @param inputClassNames the packages containing the classes we want to generate Assert classes for.
    * @param destDir the base directory where the classes are going to be generated.
    * @param entryPointFilePackage the package of the assertions entry point class, may be <code>null</code>.
+   * @param templates
    * @throws IOException if the files can't be generated
    */
   @SuppressWarnings("unchecked")
-  public AssertionsGeneratorReport generateAssertionsFor(String[] inputPackages, String[] inputClassNames, String destDir,
-	                                                     String entryPointFilePackage, boolean hierarchical) {
+  public AssertionsGeneratorReport generateAssertionsFor(String[] inputPackages, String[] inputClassNames,
+                                                         String destDir,
+                                                         String entryPointFilePackage, boolean hierarchical,
+                                                         Map<String, String> templates) {
 	generator.setDirectoryWhereAssertionFilesAreGenerated(destDir);
+
+      AssertionsGeneratorReport report = new AssertionsGeneratorReport();
+
+
+      //Register templates
+      if (MapUtils.isNotEmpty(templates)) {
+          report.setTemplates(templates);
+          for (Map.Entry<String, String> entry : templates.entrySet()) {
+
+              String pathToFile = entry.getValue();
+              File templateFile = new File(pathToFile);
+              try {
+                  String fileContent = FileUtils.readFileToString(templateFile);
+                  generator.register(new Template(Template.Type.valueOf(entry.getKey().toUpperCase()), fileContent));
+              } catch (IOException e) {
+                  e.printStackTrace();
+              }
+          }
+      }
+
 	Set<ClassDescription> classDescriptions = new HashSet<ClassDescription>();
-	AssertionsGeneratorReport report = new AssertionsGeneratorReport();
+
 	report.setInputPackages(inputPackages);
 	report.setInputClasses(inputClassNames);
 	try {

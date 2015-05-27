@@ -11,14 +11,17 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.assertj.assertions.generator.BaseAssertionGenerator;
 import org.assertj.assertions.generator.description.ClassDescription;
 import org.assertj.maven.generator.AssertionsGenerator;
 import org.assertj.maven.generator.AssertionsGeneratorReport;
+import org.assertj.maven.test.Car;
 import org.assertj.maven.test.Employee;
 import org.assertj.maven.test.name.Name;
 import org.assertj.maven.test.name.NameService;
@@ -82,7 +85,7 @@ public class AssertJAssertionsGeneratorMojoTest {
   }
 
   @Test
-  public void shoud_not_generate_assertions_for_assert_classes() throws Exception {
+  public void should_not_generate_assertions_for_assert_classes() throws Exception {
     assertjAssertionsGeneratorMojo.classes = array("org.assertj.maven.test.MyAssert");
     assertjAssertionsGeneratorMojo.packages = array("some.package");
     assertjAssertionsGeneratorMojo.hierarchical = true;
@@ -91,13 +94,26 @@ public class AssertJAssertionsGeneratorMojoTest {
   }
 
   @Test
-  public void shoud_not_generate_assertions_for_assertions_classes() throws Exception {
+  public void should_not_generate_assertions_for_assertions_classes() throws Exception {
     assertjAssertionsGeneratorMojo.classes = array("org.assertj.maven.test.MyAssertions");
     assertjAssertionsGeneratorMojo.packages = array("some.package");
     assertjAssertionsGeneratorMojo.execute();
     assertThat(assertionsFileFor("org.assertj.maven.test.MyAssertionsAssert")).doesNotExist();
   }
   
+  @Test
+  public void should_pass_with_executing_plugin_with_registering_templates()
+      throws MojoFailureException, MojoExecutionException, IOException {
+      HashMap<String, String> templateMap = new HashMap<String, String>();
+      templateMap.put("HAS_FOR_PRIMITIVE", "custom_has_assertion_template_for_primitive.txt");
+      assertjAssertionsGeneratorMojo.templates = templateMap;
+      assertjAssertionsGeneratorMojo.classes = array("org.assertj.maven.test.Car");
+
+      assertjAssertionsGeneratorMojo.execute();
+
+      assertThat(assertionsFileFor(Car.class)).exists();
+  }
+    
   @Test
   public void executing_plugin_with_classes_parameter_only_should_pass() throws Exception {
     assertjAssertionsGeneratorMojo.classes = array("org.assertj.maven.test.Employee",

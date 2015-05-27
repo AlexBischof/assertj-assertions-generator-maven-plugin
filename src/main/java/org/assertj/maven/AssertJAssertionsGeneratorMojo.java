@@ -28,6 +28,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
@@ -36,6 +37,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.assertj.assertions.generator.Template;
 import org.assertj.core.util.VisibleForTesting;
 import org.assertj.maven.generator.AssertionsGenerator;
 import org.assertj.maven.generator.AssertionsGeneratorReport;
@@ -74,6 +76,12 @@ public class AssertJAssertionsGeneratorMojo extends AbstractMojo {
    */
   @Parameter(property = "assertj.classes")
   public String[] classes;
+
+    /**
+     * Map of overriding templates for the generator with <code>Template.Type</code> as string based key and a path to the template file.
+     */
+    @Parameter(property = "assertj.templates")
+    public Map<String, String> templates;
 
   /**
    * Generated assertions are limited to classes matching one of the given regular expressions, default is to include
@@ -163,7 +171,7 @@ public class AssertJAssertionsGeneratorMojo extends AbstractMojo {
 	if (classes == null) classes = new String[0];
 	AssertionsGeneratorReport generatorReport = assertionGenerator.generateAssertionsFor(packages, classes, targetDir,
 	                                                                                     entryPointClassPackage,
-	                                                                                     hierarchical);
+	                                                                                     hierarchical, templates);
 	getLog().info(generatorReport.getReportContent());
 	project.addTestCompileSourceRoot(targetDir);
 	return generatorReport;
